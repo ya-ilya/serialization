@@ -3,8 +3,6 @@ package me.yailya.serialization.internal
 import me.yailya.serialization.Serializer
 import me.yailya.serialization.encoding.Decoder
 import me.yailya.serialization.encoding.Encoder
-import kotlin.reflect.KType
-import kotlin.reflect.jvm.jvmErasure
 
 internal val PRIMITIVES = mapOf(
     String::class to StringSerializer,
@@ -25,16 +23,6 @@ internal val PRIMITIVES = mapOf(
     Byte::class to ByteSerializer,
     ByteArray::class to ByteSerializer.Array
 )
-
-fun KType.isSerializationPrimitive(): Boolean {
-    return PRIMITIVES.containsKey(this.jvmErasure)
-}
-
-fun KType.isSerializationPrimitiveArray(): Boolean {
-    if (this.arguments.isEmpty()) return false
-    val componentType = this.arguments[0].type!!
-    return this == Array::class && (componentType.isSerializationPrimitive() || componentType.isSerializationPrimitiveArray())
-}
 
 @PublishedApi
 internal object StringSerializer : Serializer<String> {

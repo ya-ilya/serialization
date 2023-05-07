@@ -5,20 +5,23 @@ import me.yailya.serialization.Serializer
 import me.yailya.serialization.UseSerializer
 import kotlin.reflect.KType
 import kotlin.reflect.full.createInstance
+import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.jvm.jvmErasure
 
 @PublishedApi
-@Suppress("UNCHECKED_CAST")
-internal fun UseSerializer.builtinSerializer(): Serializer<out Any> {
-    return this.with.createInstance() as Serializer<Any>
+internal fun UseSerializer.annotationSerializer(): Serializer<out Any> {
+    return this.with.createInstance()
 }
 
 @PublishedApi
 internal fun KType.builtinSerializer(): Serializer<out Any>? {
     return when {
         PRIMITIVES.containsKey(this.jvmErasure) -> PRIMITIVES[this.jvmErasure]
-        this.jvmErasure.hasAnnotation<Serializable>() -> StructureSerializer(this.jvmErasure)
+        this.jvmErasure.hasAnnotation<Serializable>() -> {
+            val annotation = this.jvmErasure.findAnnotation<UseSerializer>()
+            annotation?.annotationSerializer() ?: StructureSerializer(this.jvmErasure)
+        }
         else -> null
     }
 }

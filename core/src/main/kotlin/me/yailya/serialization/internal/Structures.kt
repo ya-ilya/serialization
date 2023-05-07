@@ -16,8 +16,8 @@ import kotlin.reflect.jvm.javaField
 
 @PublishedApi
 internal class StructureSerializer<T : Any>(private val clazz: KClass<T>) : Serializer<T> {
-    companion object {
-        private lateinit var unsafe: Unsafe
+    private companion object {
+        lateinit var unsafe: Unsafe
 
         init {
             try {
@@ -36,18 +36,10 @@ internal class StructureSerializer<T : Any>(private val clazz: KClass<T>) : Seri
             property.isAccessible = true
 
             val annotation = property.findAnnotation<UseSerializer>()
-            val serializer = (annotation?.builtinSerializer() ?: property.returnType.serializer()) as Serializer<Any>
+            val serializer = (annotation?.annotationSerializer() ?: property.returnType.serializer()) as Serializer<Any>
 
             encoder.encodeString(property.name)
-            if (property.returnType.isSerializationPrimitive() || property.returnType.isSerializationPrimitiveArray()) {
-                serializer.serialize(property.get(value)!!, encoder)
-            } else if (property.returnType.arguments.isNotEmpty()) {
-                (property.returnType.serializer() as Serializer<Any>)
-                    .serialize(property.get(value)!!, encoder)
-            } else {
-                (property.returnType.builtinSerializer()!! as Serializer<Any>)
-                    .serialize(property.get(value)!!, encoder)
-            }
+            serializer.serialize(property.get(value)!!, encoder)
 
             property.isAccessible = false
         }
@@ -63,19 +55,11 @@ internal class StructureSerializer<T : Any>(private val clazz: KClass<T>) : Seri
                 .also { it.isAccessible = true }
 
             val annotation = property.findAnnotation<UseSerializer>()
-            val serializer = (annotation?.builtinSerializer() ?: property.returnType.serializer()) as Serializer<Any>
+            val serializer = (annotation?.annotationSerializer() ?: property.returnType.serializer())
 
             property.javaField!!.set(
                 instance,
-                if (property.returnType.isSerializationPrimitive() || property.returnType.isSerializationPrimitiveArray()) {
-                    serializer.deserialize(decoder)
-                } else if (property.returnType.arguments.isNotEmpty()) {
-                    (property.returnType.serializer() as Serializer<Any>)
-                        .deserialize(decoder)
-                } else {
-                    (property.returnType.builtinSerializer()!! as Serializer<Any>)
-                        .deserialize(decoder)
-                }
+                serializer.deserialize(decoder)
             )
 
             property.isAccessible = false
