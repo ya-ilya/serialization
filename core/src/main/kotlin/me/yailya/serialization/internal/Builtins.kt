@@ -11,16 +11,16 @@ import kotlin.reflect.jvm.jvmErasure
 
 @PublishedApi
 internal fun UseSerializer.annotationSerializer(): Serializer<out Any> {
-    return this.with.createInstance()
+    return with.createInstance()
 }
 
 @PublishedApi
 internal fun KType.builtinSerializer(): Serializer<out Any>? {
     return when {
-        PRIMITIVES.containsKey(this.jvmErasure) -> PRIMITIVES[this.jvmErasure]
-        this.jvmErasure.hasAnnotation<Serializable>() -> {
-            val annotation = this.jvmErasure.findAnnotation<UseSerializer>()
-            annotation?.annotationSerializer() ?: StructureSerializer(this.jvmErasure)
+        PRIMITIVES.containsKey(jvmErasure) -> PRIMITIVES[jvmErasure]
+        jvmErasure.hasAnnotation<Serializable>() -> {
+            val annotation = findAnnotation<UseSerializer>()
+            annotation?.annotationSerializer() ?: StructureSerializer(jvmErasure)
         }
         else -> null
     }
@@ -28,7 +28,7 @@ internal fun KType.builtinSerializer(): Serializer<out Any>? {
 
 @PublishedApi
 internal fun KType.builtinParametrizedSerializer(serializers: List<Serializer<out Any>>): Serializer<out Any>? {
-    return when (this.jvmErasure) {
+    return when (jvmErasure) {
         Iterable::class -> IterableSerializer(serializers[0])
         Collection::class, List::class, MutableList::class, ArrayList::class -> ArrayListSerializer(serializers[0])
         HashSet::class -> HashSetSerializer(serializers[0])
@@ -39,7 +39,7 @@ internal fun KType.builtinParametrizedSerializer(serializers: List<Serializer<ou
         Triple::class -> TripleSerializer(serializers[0], serializers[1], serializers[2])
         Map.Entry::class -> MapEntrySerializer(serializers[0], serializers[1])
         else -> {
-            if (this.jvmErasure.java.isArray) {
+            if (jvmErasure.java.isArray) {
                 ArraySerializer(serializers[0])
             } else {
                 null
