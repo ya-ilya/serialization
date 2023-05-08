@@ -17,6 +17,6 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.ya-ilya:serialization:VERSION'
+    implementation 'com.github.ya-ilya:serialization:VERSION:core'
 }
 ```
