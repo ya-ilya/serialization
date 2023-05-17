@@ -19,7 +19,7 @@ internal fun KType.builtinSerializer(): Serializer<out Any>? {
     return when {
         PRIMITIVES.containsKey(jvmErasure) -> PRIMITIVES[jvmErasure]
         jvmErasure.hasAnnotation<Serializable>() -> {
-            val annotation = findAnnotation<UseSerializer>()
+            val annotation = jvmErasure.findAnnotation<UseSerializer>()
             annotation?.annotationSerializer() ?: StructureSerializer(jvmErasure)
         }
         else -> null
